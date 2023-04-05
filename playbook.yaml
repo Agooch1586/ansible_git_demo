@@ -1,0 +1,54 @@
+---
+
+- name: my first playbook
+  hosts: my_servers
+
+  gather_facts: true
+  become: yes
+  vars_files:
+  - "vars.yaml"
+
+  tasks:
+  - name: update all packages
+    yum:
+      name: '*'
+      state: latest
+
+  - name: install git
+    yum:
+      name: git
+      state: latest
+
+  - name: install apache
+    yum:
+      name: httpd
+      state: latest
+
+  - name: delete the original index.html file
+    file:
+      path: /var/www/html/index.html
+      state: absent
+
+  - name: create a new folder for GitHub
+    file:
+      path: /opt/github_repo
+      state: directory
+
+  - name: clone GitHub repository
+  git:
+    repo: https://github.com/Agooch1586/homework3-repo.git
+    dest: /opt/github_repo
+
+  - name: copy index.html from GitHub repo to /var/www/html/
+    copy:
+      src: /opt/github_repo/index.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: ensure apache is started
+    ansible.builtin.service:
+      name: httpd
+      state: started
+      enabled: yes
